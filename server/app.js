@@ -4,7 +4,6 @@ const http = require("http");
 const { initializeAPI } = require("./api");
 const decapitate = require("./middlewares/decapitate");
 const pino = require("pino-http");
-const log = require("./middlewares/log");
 const { rateLimit } = require("express-rate-limit");
 
 const perMinute = 60 * 1000;
@@ -26,7 +25,7 @@ const server = http.createServer(app);
 // deliver static files from the client folder like css, js, images
 app.use(express.static("client"));
 // route for the homepage
-app.get("/", (req, res) => {
+app.get("/", decapitate, (req, res) => {
   res.sendFile(__dirname + "/client/index.html");
 });
 

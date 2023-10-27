@@ -1,4 +1,5 @@
 const sqlite3 = require("sqlite3").verbose();
+const bcrypt = require("bcrypt");
 
 const tweetsTableExists =
   "SELECT name FROM sqlite_master WHERE type='table' AND name='tweets'";
@@ -16,10 +17,11 @@ const createUsersTable = `CREATE TABLE users (
   password TEXT,
   role TEXT NOT NULL DEFAULT 'viewer'
 )`;
-const seedUsersTable = `INSERT INTO users (username, password) VALUES
-  ('switzerchees', '$2b$10$.pD2V39dd2zpPNZXwx3o2OoFG492QdZm8nWwNMZiXmNpJ2FY7mngu'),
-  ('john', '$2b$10$vsDzLSBxCp/JBNeSFO0k5.FLjaDVQTWhERSYSFMeIoHAQTxcEOeja'),
-  ('jane', '$2b$10$jRZXv8b00CGdZ4ZuUcGwsOyfJwTPnwun9mbys3JkwHnRopJs0d4HW')
+const seedUsersTable =
+  async () => `INSERT INTO users (username, password) VALUES
+  ('switzerchees', '${await bcrypt.hash("123456", 10)}'),
+  ('john', '${await bcrypt.hash("123456", 10)}'),
+  ('jane', '${await bcrypt.hash("123456", 10)}')
 `;
 
 const initializeDatabase = async () => {
@@ -29,7 +31,7 @@ const initializeDatabase = async () => {
     db.get(tweetsTableExists, [], async (err, row) => {
       if (err) return console.error(err.message);
       if (!row) {
-        await db.run(createTweetsTable);
+        db.run(createTweetsTable);
       }
     });
     db.get(usersTableExists, [], async (err, row) => {
@@ -37,7 +39,7 @@ const initializeDatabase = async () => {
       if (!row) {
         db.run(createUsersTable, [], async (err) => {
           if (err) return console.error(err.message);
-          db.run(seedUsersTable);
+          db.run(await seedUsersTable());
         });
       }
     });

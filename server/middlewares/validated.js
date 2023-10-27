@@ -5,14 +5,8 @@ const validated = (req, res, next) => {
 
   if (result.isEmpty()) return next();
 
-  const formattedErrors = result
-    .array()
-    .map((error) => {
-      console.log(error);
-      return error.msg;
-    })
-    .join("\n");
-
-  return res.status(400).json({ error: formattedErrors });
+  const logAndGetMessages = (err) => (console.log(err) ? 0 : err.msg);
+  const error = result.array().map(logAndGetMessages).join("\n");
+  return res.status(400).json({ error });
 };
 module.exports = validated;

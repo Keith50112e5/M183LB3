@@ -1,6 +1,5 @@
 const { initializeDatabase, queryDB, insertDB } = require("./database");
 const decapitate = require("./middlewares/decapitate");
-const log = require("./middlewares/log");
 const bcrypt = require("bcrypt");
 const jwtMiddleware = require("./middlewares/jwt");
 const valid = require("express-validator");
@@ -13,19 +12,12 @@ let db;
 
 const initializeAPI = async (app) => {
   db = await initializeDatabase();
-  app.get(
-    "/api/feed",
-    jwtMiddleware.verify,
-    log("Benutzer schaut sich die Feeds an."),
-    decapitate,
-    getFeed
-  );
+  app.get("/api/feed", jwtMiddleware.verify, decapitate, getFeed);
   app.post(
     "/api/feed",
     jwtMiddleware.verify,
     valid.body("text").notEmpty().withMessage("Feed can't be Empty.").escape(),
     validated,
-    log("Benutzer postet einen Feed."),
     decapitate,
     postTweet
   );
@@ -34,7 +26,7 @@ const initializeAPI = async (app) => {
     valid
       .body("username")
       .notEmpty()
-      .withMessage("Feed can't be Empty.")
+      .withMessage("Username can't be Empty.")
       .escape(),
     valid
       .body("password")
@@ -42,44 +34,51 @@ const initializeAPI = async (app) => {
       .withMessage("Password must be between 6 to 64 characters.")
       .escape(),
     validated,
-    log("Benutzer loggt sich ein"),
     decapitate,
     login
   );
 };
 
 const getFeed = async (req, res) => {
+  const { username } = req.user;
+  req.log.info(username + " schaut sich die Tweets an.");
+
   const query = "SELECT * FROM tweets ORDER BY id DESC";
   const plainTweets = await queryDB(db, query);
-  const tweets = plainTweets.map((tweet) => {
+  const decryptText = (tweet) => {
     const text = aes.decrypt(tweet.text);
     return { ...tweet, text };
-  });
+  };
+  const tweets = plainTweets.map(decryptText);
   return res.json(tweets);
 };
 
 const postTweet = async (req, res) => {
   const { username } = req.user;
+  req.log.info(username + " postet einen Tweet.");
+
   const { timestamp, text } = req.body;
-  const query = `INSERT INTO tweets (username, timestamp, text) VALUES ('${username}', '${timestamp}', '${aes.encrypt(
-    text
-  )}')`;
+  const encryption = aes.encrypt(text);
+  const query = `INSERT INTO tweets (username, timestamp, text) VALUES ('${username}', '${timestamp}', '${encryption}')`;
   await insertDB(db, query);
   return res.json({ status: "ok" });
 };
 
 const login = async (req, res) => {
+  req.log.info("Benutzer loggt sich ein");
+
   const { username, password } = req.body;
   const query = `SELECT * FROM users WHERE username = '${username}'`;
   const users = await queryDB(db, query);
-
   const genericMessage = { error: "Wrong Username or Password." };
 
   if (users.length !== 1) return res.json(genericMessage);
 
   const user = users[0];
   const match = await bcrypt.compare(password, user.password);
+
   if (!match) return res.json(genericMessage);
+
   const { role } = user;
   const data = { username, role };
   const token = jwtMiddleware.sign({ data });

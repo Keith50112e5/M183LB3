@@ -4,9 +4,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const logoutButton = document.getElementById("logout");
 
   const token = sessionStorage.getItem("token");
-  if (!token) {
-    window.location.href = "/login.html";
-  }
+
+  if (!token) window.location.href = "/login.html";
+
+  const authorization = "Bearer " + token;
 
   const generateTweet = (tweet) => {
     const date = new Date(tweet.timestamp).toLocaleDateString("de-CH", {
@@ -28,17 +29,14 @@ document.addEventListener("DOMContentLoaded", () => {
                 <p>${tweet.text}</p>
                 </div>
             </div>
-        </div>
-      `;
+        </div>`;
     return tweetElement;
   };
 
   const getFeed = async () => {
     const response = await fetch(`/api/feed`, {
       method: "GET",
-      headers: {
-        authorization: "Bearer " + token,
-      },
+      headers: { authorization },
     });
     const tweets = await response.json();
     const tweetsHTML = tweets.map(generateTweet).join("");
@@ -48,14 +46,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const postTweet = async () => {
     const timestamp = new Date().toISOString();
     const text = newTweetInput.value;
-    const data = { timestamp, text };
     await fetch("/api/feed", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        authorization: "Bearer " + token,
+        authorization,
       },
-      body: JSON.stringify(data),
+      body: JSON.stringify({ timestamp, text }),
     });
     await getFeed();
     newTweetInput.value = "";
