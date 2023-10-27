@@ -1,12 +1,13 @@
 const { initializeDatabase, queryDB, insertDB } = require("./database");
+const decapitate = require("./middlewares/decapitate");
 
 let db;
 
 const initializeAPI = async (app) => {
   db = await initializeDatabase();
-  app.get("/api/feed", getFeed);
-  app.post("/api/feed", postTweet);
-  app.post("/api/login", login);
+  app.get("/api/feed", decapitate, getFeed);
+  app.post("/api/feed", decapitate, postTweet);
+  app.post("/api/login", decapitate, login);
 };
 
 const getFeed = async (req, res) => {

@@ -1,6 +1,7 @@
 const express = require("express");
 const http = require("http");
 const { initializeAPI } = require("./api");
+const decapitate = require("./middlewares/decapitate");
 
 // Create the express server
 const app = express();
@@ -10,7 +11,7 @@ const server = http.createServer(app);
 // deliver static files from the client folder like css, js, images
 app.use(express.static("client"));
 // route for the homepage
-app.get("/", (req, res) => {
+app.get("/", decapitate, (req, res) => {
   res.sendFile(__dirname + "/client/index.html");
 });
 
