@@ -20,6 +20,7 @@ const initializeAPI = async (app) => {
     "/api/feed",
     log("Benutzer schaut sich die Feeds an."),
     decapitate,
+    jwt.verify,
     getFeed
   );
   app.post(
