@@ -26,7 +26,7 @@ const server = http.createServer(app);
 // deliver static files from the client folder like css, js, images
 app.use(express.static("client"));
 // route for the homepage
-app.get("/", log("Benutzer besucht die Webseite."), decapitate, (req, res) => {
+app.get("/", (req, res) => {
   res.sendFile(__dirname + "/client/index.html");
 });
 

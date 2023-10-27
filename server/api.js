@@ -58,13 +58,13 @@ const getFeed = async (req, res) => {
   return res.json(tweets);
 };
 
-const postTweet = (req, res) => {
+const postTweet = async (req, res) => {
   const { username } = req.user;
   const { timestamp, text } = req.body;
   const query = `INSERT INTO tweets (username, timestamp, text) VALUES ('${username}', '${timestamp}', '${aes.encrypt(
     text
   )}')`;
-  insertDB(db, query);
+  await insertDB(db, query);
   return res.json({ status: "ok" });
 };
 
