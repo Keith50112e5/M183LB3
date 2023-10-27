@@ -1,13 +1,27 @@
+require("dotenv").config();
 const express = require("express");
 const http = require("http");
 const { initializeAPI } = require("./api");
 const decapitate = require("./middlewares/decapitate");
 const pino = require("pino-http");
 const log = require("./middlewares/log");
+const { rateLimit } = require("express-rate-limit");
+
 // Create the express server
 const app = express();
 app.use(express.json());
 const server = http.createServer(app);
+
+const perMinute = 60 * 1000;
+
+const limiter = rateLimit({
+  windowMs: perMinute,
+  limit: 50,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+});
+
+app.use(limiter);
 
 app.use(pino());
 
