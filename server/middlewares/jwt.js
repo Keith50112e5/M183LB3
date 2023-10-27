@@ -12,15 +12,19 @@ const verify = (req, res, next) => {
 
   const [prefix, token] = authorization.split(" ");
 
-  if (prefix !== "Bearer")
-    return res.status(401).json({ error: "Invalid authorization prefix." });
+  const sendError = (error, statusCode = 401) => {
+    req.log.error(error);
+    res.status(statusCode).json({ error });
+  };
+
+  if (prefix !== "Bearer") return sendError("Invalid authorization prefix.");
 
   const tokenValidation = jwt.verify(token, jwtSecret);
 
-  if (!tokenValidation?.data)
-    return res.status(401).json({ error: "Invalid token." });
+  if (!tokenValidation?.data) return sendError("Invalid token.");
+
   if (tokenValidation.data.role !== "viewer")
-    return res.status(403).json({ error: "You are not a viewer." });
+    return sendError("You are not a viewer.", 403);
 
   req.user = tokenValidation.data;
 

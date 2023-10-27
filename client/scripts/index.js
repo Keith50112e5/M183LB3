@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const newTweetInput = document.getElementById("new-tweet");
   const postTweetButton = document.getElementById("post-tweet");
   const logoutButton = document.getElementById("logout");
@@ -68,5 +68,5 @@ document.addEventListener("DOMContentLoaded", () => {
     window.location.href = "/login.html";
   });
 
-  getFeed();
+  if (token) await getFeed();
 });

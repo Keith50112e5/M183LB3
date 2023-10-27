@@ -1,11 +1,15 @@
-const valid = require("express-validator");
+const { validationResult } = require("express-validator");
 
 const validated = (req, res, next) => {
-  const result = valid.validationResult(req);
+  const result = validationResult(req);
 
   if (result.isEmpty()) return next();
 
-  const logAndGetMessages = (err) => (console.log(err) ? 0 : err.msg);
+  const logAndGetMessages = (err) => {
+    const { msg } = err;
+    req.log.error(msg);
+    return msg;
+  };
   const error = result.array().map(logAndGetMessages).join("\n");
   return res.status(400).json({ error });
 };
