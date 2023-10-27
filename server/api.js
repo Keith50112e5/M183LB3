@@ -1,13 +1,24 @@
 const { initializeDatabase, queryDB, insertDB } = require("./database");
 const decapitate = require("./middlewares/decapitate");
+const log = require("./middlewares/log");
 
 let db;
 
 const initializeAPI = async (app) => {
   db = await initializeDatabase();
-  app.get("/api/feed", decapitate, getFeed);
-  app.post("/api/feed", decapitate, postTweet);
-  app.post("/api/login", decapitate, login);
+  app.get(
+    "/api/feed",
+    log("Benutzer schaut sich die Feeds an."),
+    decapitate,
+    getFeed
+  );
+  app.post(
+    "/api/feed",
+    log("Benutzer postet einen Feed."),
+    decapitate,
+    postTweet
+  );
+  app.post("/api/login", log("Benutzer loggt sich ein."), decapitate, login);
 };
 
 const getFeed = async (req, res) => {
