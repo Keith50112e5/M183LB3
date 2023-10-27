@@ -2,7 +2,7 @@ const { initializeDatabase, queryDB, insertDB } = require("./database");
 const decapitate = require("./middlewares/decapitate");
 const log = require("./middlewares/log");
 const bcrypt = require("bcrypt");
-const jwt = require("./middlewares/jwt");
+const jwtMiddleware = require("./middlewares/jwt");
 const valid = require("express-validator");
 const validated = require("./middlewares/validated");
 const { aesInit } = require("./aes");
@@ -15,15 +15,15 @@ const initializeAPI = async (app) => {
   db = await initializeDatabase();
   app.get(
     "/api/feed",
-    jwt.verify,
+    jwtMiddleware.verify,
     log("Benutzer schaut sich die Feeds an."),
     decapitate,
     getFeed
   );
   app.post(
     "/api/feed",
-    jwt.verify,
-    valid.body("text"),
+    jwtMiddleware.verify,
+    valid.body("text").notEmpty().withMessage("Feed can't be Empty.").escape(),
     validated,
     log("Benutzer postet einen Feed."),
     decapitate,
@@ -31,8 +31,16 @@ const initializeAPI = async (app) => {
   );
   app.post(
     "/api/login",
-    valid.body("username").escape(),
-    valid.body("password").escape(),
+    valid
+      .body("username")
+      .notEmpty()
+      .withMessage("Feed can't be Empty.")
+      .escape(),
+    valid
+      .body("password")
+      .isLength({ min: 6, max: 64 })
+      .withMessage("Password must be between 6 to 64 characters.")
+      .escape(),
     validated,
     log("Benutzer loggt sich ein"),
     decapitate,
@@ -64,14 +72,17 @@ const login = async (req, res) => {
   const { username, password } = req.body;
   const query = `SELECT * FROM users WHERE username = '${username}'`;
   const users = await queryDB(db, query);
-  if (users.length !== 1) return res.json(null);
+
+  const genericMessage = { error: "Wrong Username or Password." };
+
+  if (users.length !== 1) return res.json(genericMessage);
 
   const user = users[0];
   const match = await bcrypt.compare(password, user.password);
-  if (!match) return res.json({ error: "Wrong Username or Password" });
+  if (!match) return res.json(genericMessage);
   const { role } = user;
   const data = { username, role };
-  const token = jwt.sign({ data });
+  const token = jwtMiddleware.sign({ data });
 
   return res.json({ token });
 };

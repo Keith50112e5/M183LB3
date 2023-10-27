@@ -5,11 +5,14 @@ const validated = (req, res, next) => {
 
   if (result.isEmpty()) return next();
 
-  const formattedErrors = result.array().map((error) => {
-    console.log(error);
-    return { [error.path]: error.msg };
-  });
+  const formattedErrors = result
+    .array()
+    .map((error) => {
+      console.log(error);
+      return error.msg;
+    })
+    .join("\n");
 
-  return res.status(400).json(formattedErrors);
+  return res.status(400).json({ error: formattedErrors });
 };
 module.exports = validated;
