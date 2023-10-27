@@ -1,7 +1,9 @@
 const jwt = require("jsonwebtoken");
+
 const jwtSecret = process.env.JWT_SECRET || "secret";
 
 const sign = (data) => jwt.sign(data, jwtSecret, { expiresIn: "1h" });
+
 const verify = (req, res, next) => {
   const authorization = req.headers.authorization;
   if (!authorization) {
@@ -19,6 +21,6 @@ const verify = (req, res, next) => {
     return res.status(403).json({ error: "You are not a viewer." });
   }
   req.user = tokenValidation.data;
-  next();
+  return next();
 };
 module.exports = { sign, verify };

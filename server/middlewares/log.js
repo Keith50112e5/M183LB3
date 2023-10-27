@@ -1,5 +1,5 @@
 const log = (info) => (req, res, next) => {
   req.log.info(info);
-  next();
+  return next();
 };
 module.exports = log;

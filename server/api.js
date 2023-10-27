@@ -3,14 +3,11 @@ const decapitate = require("./middlewares/decapitate");
 const log = require("./middlewares/log");
 const bcrypt = require("bcrypt");
 const jwt = require("./middlewares/jwt");
+const valid = require("express-validator");
+const validated = require("./middlewares/validated");
+const { aesInit } = require("./aes");
 
-const AES = require("aes-encryption");
-
-const aes = new AES();
-
-const aesSecret = process.env.AES_SECRET;
-
-aes.setSecretKey(aesSecret);
+const aes = aesInit();
 
 let db;
 
@@ -18,19 +15,29 @@ const initializeAPI = async (app) => {
   db = await initializeDatabase();
   app.get(
     "/api/feed",
+    jwt.verify,
     log("Benutzer schaut sich die Feeds an."),
     decapitate,
-    jwt.verify,
     getFeed
   );
   app.post(
     "/api/feed",
+    jwt.verify,
+    valid.body("text"),
+    validated,
     log("Benutzer postet einen Feed."),
     decapitate,
-    jwt.verify,
     postTweet
   );
-  app.post("/api/login", log("Benutzer loggt sich ein"), decapitate, login);
+  app.post(
+    "/api/login",
+    valid.body("username").escape(),
+    valid.body("password").escape(),
+    validated,
+    log("Benutzer loggt sich ein"),
+    decapitate,
+    login
+  );
 };
 
 const getFeed = async (req, res) => {
@@ -40,17 +47,17 @@ const getFeed = async (req, res) => {
     const text = aes.decrypt(tweet.text);
     return { ...tweet, text };
   });
-  res.json(tweets);
+  return res.json(tweets);
 };
 
 const postTweet = (req, res) => {
   const { username } = req.user;
-  const { timestamp, text } = req.body.data;
+  const { timestamp, text } = req.body;
   const query = `INSERT INTO tweets (username, timestamp, text) VALUES ('${username}', '${timestamp}', '${aes.encrypt(
     text
   )}')`;
   insertDB(db, query);
-  res.json({ status: "ok" });
+  return res.json({ status: "ok" });
 };
 
 const login = async (req, res) => {
@@ -66,7 +73,7 @@ const login = async (req, res) => {
   const data = { username, role };
   const token = jwt.sign({ data });
 
-  res.json({ token });
+  return res.json({ token });
 };
 
 module.exports = { initializeAPI };

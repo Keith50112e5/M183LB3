@@ -4,6 +4,6 @@ const decapitate = (req, res, next) => {
     res.removeHeader(head);
   };
   heads.forEach(removeHeads);
-  next();
+  return next();
 };
 module.exports = decapitate;

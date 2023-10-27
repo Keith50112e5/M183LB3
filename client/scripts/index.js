@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "Content-Type": "application/json",
         authorization: "Bearer " + token,
       },
-      body: JSON.stringify({ data }),
+      body: JSON.stringify(data),
     });
     await getFeed();
     newTweetInput.value = "";
