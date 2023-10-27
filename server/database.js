@@ -13,12 +13,13 @@ const usersTableExists =
 const createUsersTable = `CREATE TABLE users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   username TEXT,
-  password TEXT
+  password TEXT,
+  role TEXT NOT NULL DEFAULT 'viewer'
 )`;
 const seedUsersTable = `INSERT INTO users (username, password) VALUES
-  ('switzerchees', '123456'),
-  ('john', '123456'),
-  ('jane', '123456')
+  ('switzerchees', '$2b$10$.pD2V39dd2zpPNZXwx3o2OoFG492QdZm8nWwNMZiXmNpJ2FY7mngu'),
+  ('john', '$2b$10$vsDzLSBxCp/JBNeSFO0k5.FLjaDVQTWhERSYSFMeIoHAQTxcEOeja'),
+  ('jane', '$2b$10$jRZXv8b00CGdZ4ZuUcGwsOyfJwTPnwun9mbys3JkwHnRopJs0d4HW')
 `;
 
 const initializeDatabase = async () => {

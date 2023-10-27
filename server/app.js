@@ -7,11 +7,6 @@ const pino = require("pino-http");
 const log = require("./middlewares/log");
 const { rateLimit } = require("express-rate-limit");
 
-// Create the express server
-const app = express();
-app.use(express.json());
-const server = http.createServer(app);
-
 const perMinute = 60 * 1000;
 
 const limiter = rateLimit({
@@ -21,9 +16,12 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.use(limiter);
-
+// Create the express server
+const app = express();
+app.use(express.json());
 app.use(pino());
+app.use(limiter);
+const server = http.createServer(app);
 
 // deliver static files from the client folder like css, js, images
 app.use(express.static("client"));

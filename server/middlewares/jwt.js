@@ -15,9 +15,10 @@ const verify = (req, res, next) => {
   if (!tokenValidation?.data) {
     return res.status(401).json({ error: "Invalid token." });
   }
-  if (!tokenValidation.data.roles?.includes("viewer")) {
+  if (!tokenValidation.data.role?.includes("viewer")) {
     return res.status(403).json({ error: "You are not a viewer." });
   }
+  req.user = tokenValidation.data;
   next();
 };
 module.exports = { sign, verify };
